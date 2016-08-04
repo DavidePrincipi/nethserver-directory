@@ -53,6 +53,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc scripts/fix_accounts
 %doc scripts/import_users
 %doc scripts/fix_migration_home
+%doc scripts/db_import_groups
 
 %changelog
 * Thu Sep 24 2015 Davide Principi <davide.principi@nethesis.it> - 2.3.0-1
