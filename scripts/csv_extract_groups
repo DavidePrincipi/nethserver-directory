@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2016 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Parse a csv file [username, lastname, firstname, group, email, password]
+# and outputs tsv data ready for "db_import_groups" script.
+# !!DO NOT INCLUDE ANY CSV HEADER FROM INPUT!!
+
+use strict;
+
+my $file = shift;
+my $separator = shift;
+my %groups = ();
+
+if($file) {
+    open(FH, "<", $file) or die;
+} else {
+    open(FH, "-");
+}
+
+if( ! $separator) {
+    $separator = ",";
+}
+
+while(<FH>) {
+    
+    # Remove trailing whitespace:
+    chomp $_;
+    $_ =~ s/\s+$//;
+
+    my ($username, $lastName, $firstName, $groupName, $email, $password) = split(/$separator/, $_, 6);
+
+    if( ! $username) {
+        next;
+    }
+
+    if( ! $firstName) {
+        warn "[WARNING] Account `$username` is missing FirstName column: skipped.\n";
+        next;
+    }
+
+    if( ! $lastName) {
+        warn "[WARNING] Account `$username` is missing LastName column: skipped.\n";
+        next;
+    }
+
+
+    if( ! defined $groups{$groupName}) {
+        $groups{$groupName} = [];
+    }
+    
+    if( ! grep { $_ eq $username} @{$groups{$groupName}}) {
+        push $groups{$groupName}, $username;
+    }
+
+}
+
+foreach (keys %groups) {
+    print join("\t", $_, 0, '', @{$groups{$_}}) . "\n";
+}
